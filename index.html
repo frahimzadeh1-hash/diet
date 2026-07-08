@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍽️ جدول رژیم هوشمند با ذخیره خودکار</title>
+    <title>🍽️ جدول رژیم · کالری فعالیت کسر می‌شود</title>
     <style>
-        /* استایل‌ها دقیقاً مانند قبل هستند، فقط برای اختصار، کمی فشرده شده‌اند */
+        /* ===== استایل‌ها ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #eef4ee; padding: 8px; display: flex; justify-content: center; }
         .container { max-width: 1600px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 12px 35px rgba(0,0,0,0.08); padding: 18px 14px 28px; }
@@ -17,7 +17,6 @@
         th:last-child { border-left: none; }
         td { border: 1px solid #d0e0d0; padding: 8px 6px; vertical-align: middle; text-align: center; background: #fcfdfc; }
         .meal-label { background: #e4f0e4; font-weight: 700; color: #0f2e1a; white-space: nowrap; padding: 0 12px; text-align: center; border-left: 2px solid #bed6be; font-size: 0.9rem; min-width: 75px; }
-        .food-group { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 3px 0; width: 100%; }
         .food-input { width: 96%; max-width: 100%; padding: 12px 10px; border: 2px solid #b8d0b8; border-radius: 35px; font-size: 0.85rem; background: #fafffa; text-align: center; transition: 0.2s; min-height: 50px; line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; resize: vertical; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .food-input:focus { outline: 3px solid #6d9e6d; border-color: transparent; background: white; }
         .food-input::placeholder { color: #8aaa8a; font-size: 0.75rem; }
@@ -39,7 +38,8 @@
         .cal-label { font-size: 0.7rem; color: #3a6a3a; font-weight: 600; }
         .meal-cell { min-width: 160px; max-width: 220px; }
         .line-count { font-size: 0.65rem; color: #5a7a5a; background: #eaf5ea; padding: 1px 10px; border-radius: 30px; display: inline-block; }
-        .save-badge { background: #3b7a3b; color: white; padding: 2px 14px; border-radius: 40px; font-size: 0.7rem; display: inline-block; margin-right: 8px; }
+        .sync-status { background: #3b7a3b; color: white; padding: 4px 18px; border-radius: 40px; font-size: 0.8rem; }
+        .activity-burn { color: #c0392b; font-weight: 700; }
         @media (max-width: 860px) { .container { padding: 8px; } h1 { font-size: 1.3rem; } table { font-size: 0.7rem; min-width: 900px; } .food-input { font-size: 0.7rem; min-height: 40px; padding: 8px 6px; } .cal-input { width: 75px; font-size: 0.8rem; padding: 6px 4px; } th { font-size: 0.8rem; padding: 10px 4px; } }
         @media (max-width: 500px) { .food-input { font-size: 0.65rem; min-height: 35px; } .cal-input { width: 65px; font-size: 0.7rem; } }
     </style>
@@ -47,11 +47,10 @@
 <body>
 
 <div class="container" id="app">
-
-    <h1>📝 جدول رژیم · با ذخیره خودکار</h1>
+    <h1>📝 جدول رژیم · کالری فعالیت کسر می‌شود</h1>
     <div class="subhead">
         <span>🗓️ چهارشنبه ۱۶ تیر ۱۴۰۵ تا سه‌شنبه</span>
-        <span>⚡ <span style="background:#3b7a3b;color:white;padding:4px 18px;border-radius:40px;">💾 همه چیز ذخیره می‌شود</span></span>
+        <span>⚡ <span style="background:#3b7a3b;color:white;padding:4px 18px;border-radius:40px;">کالری نهایی = غذا - فعالیت</span></span>
     </div>
 
     <div class="table-wrapper">
@@ -130,7 +129,7 @@
                         <div class="food-row">
                             <textarea class="food-input" v-model="meals[day].snack3.food" placeholder="مثال:&#10;شیر گرم&#10;خرما ۳ عدد" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
                             <span class="line-count" v-if="meals[day].snack3.food">📄 {{ meals[day].snack3.food.split('\n').filter(l => l.trim()).length }} خط</span>
-                            <input class="cal-input" type="number" v-model.number="meals[day].snack3.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <input class="cal-input" type="number" v-model.number="mes[day].snack3.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
                             <span class="cal-label">کالری این وعده</span>
                         </div>
                     </td>
@@ -151,15 +150,15 @@
                     <td class="meal-label">🏃 فعالیت (دقیقه)</td>
                     <td v-for="day in days" :key="'a'+day">
                         <input class="activity-input" type="number" v-model.number="activities[day]" min="0" step="5" placeholder="۰" @input="saveData(); updateCalorie(day)">
-                        <span style="font-size:0.7rem;display:block;color:#3a6a3a;font-weight:600;">= {{ (activities[day] || 0) * 2 }} کالری</span>
+                        <span style="font-size:0.75rem;display:block;color:#c0392b;font-weight:700;">- {{ (activities[day] || 0) * 2 }} کالری</span>
                     </td>
                 </tr>
-                <!-- کالری روزانه -->
+                <!-- کالری روزانه (نهایی = غذا - فعالیت) -->
                 <tr>
-                    <td class="meal-label" style="background:#d4e8d4; font-weight:800; font-size:1rem;">🔥 کالری روز</td>
+                    <td class="meal-label" style="background:#d4e8d4; font-weight:800; font-size:1rem;">🔥 کالری نهایی</td>
                     <td v-for="day in days" :key="'c'+day" style="background:#f2faf2;">
                         <span class="calorie-box">{{ dailyCalories[day] ?? 0 }}</span>
-                        <span style="font-size:0.65rem;display:block;color:#2d5a2d;font-weight:600;">کالری</span>
+                        <span style="font-size:0.65rem;display:block;color:#2d5a2d;font-weight:600;">کالری (غذا - فعالیت)</span>
                     </td>
                 </tr>
             </tbody>
@@ -176,12 +175,14 @@
     </div>
 
     <div class="note">
-        ✏️ <strong>نحوه استفاده:</strong> 
-        در هر باکس می‌توانید با <strong>Shift + Enter</strong> خط جدید ایجاد کنید و تمام غذاهای آن وعده را لیست کنید.
-        <span style="background:#3b7a3b;color:white;padding:2px 16px;border-radius:40px;font-weight:700;margin-right:8px;">💾 همه چیز ذخیره می‌شود</span>
+        ✏️ <strong>نحوه محاسبه:</strong> 
+        کالری نهایی = <strong>مجموع کالری غذاها</strong> − <strong>کالری سوزانده شده (فعالیت)</strong> 
+        <br>
+        هر دقیقه فعالیت = ۲ کالری کاهش. 
+        <span style="background:#3b7a3b;color:white;padding:2px 16px;border-radius:40px;font-weight:700;margin-right:8px;">✅ کالری فعالیت کسر می‌شود</span>
     </div>
     <div class="footer">
-        📌 کالری کل = مجموع کالری غذاها (وارد شده توسط شما) + (دقیقه فعالیت × ۲) · شما کالری هر وعده را وارد می‌کنید، من جمع می‌زنم.
+        📌 کالری نهایی = مجموع کالری غذاها (وارد شده توسط شما) − (دقیقه فعالیت × ۲) · فعالیت باعث کاهش کالری می‌شود.
     </div>
 </div>
 
@@ -190,7 +191,7 @@
     (function() {
         const daysOfWeek = ['چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه'];
         const todayName = 'چهارشنبه';
-        const STORAGE_KEY = 'diet_table_data_v2'; // کلید ذخیره‌سازی
+        const STORAGE_KEY = 'diet_table_data_v3';
 
         function createMealObject() {
             return {
@@ -222,22 +223,16 @@
                 const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
                     const parsed = JSON.parse(stored);
-                    // بررسی می‌کنیم که ساختار داده درست است
                     if (parsed.meals && parsed.activities) {
-                        // اطمینان از اینکه همه روزها وجود دارند
                         let valid = true;
                         for (let d of daysOfWeek) {
                             if (!parsed.meals[d]) valid = false;
                             if (parsed.activities[d] === undefined) valid = false;
                         }
-                        if (valid) {
-                            return parsed;
-                        }
+                        if (valid) return parsed;
                     }
                 }
-            } catch (e) {
-                console.warn('خطا در بارگذاری داده:', e);
-            }
+            } catch (e) { console.warn('خطا در بارگذاری داده:', e); }
             return null;
         }
 
@@ -266,6 +261,7 @@
                     const m = this.meals[day];
                     if (!m) return 0;
 
+                    // جمع کالری غذاها
                     let foodCal = 0;
                     foodCal += (m.breakfast?.cal || 0);
                     foodCal += (m.snack1?.cal || 0);
@@ -274,10 +270,13 @@
                     foodCal += (m.dinner?.cal || 0);
                     foodCal += (m.snack3?.cal || 0);
 
+                    // کالری سوزانده شده (کسر می‌شود)
                     const activityMin = this.activities[day] || 0;
                     const activityCal = activityMin * this.activityCalPerMin;
 
-                    return Math.round(foodCal + activityCal);
+                    // کالری نهایی = غذا - فعالیت (اگر منفی شد، صفر می‌شود)
+                    const result = Math.round(foodCal - activityCal);
+                    return result < 0 ? 0 : result;
                 },
                 updateCalorie(day) {
                     this.$set(this.dailyCalories, day, this.calculateDayCalories(day));
@@ -291,9 +290,7 @@
                             activities: this.activities
                         };
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                    } catch (e) {
-                        console.warn('خطا در ذخیره‌سازی:', e);
-                    }
+                    } catch (e) { console.warn('خطا در ذخیره‌سازی:', e); }
                     this.isSaving = false;
                 },
                 initDay(day) {
@@ -318,24 +315,19 @@
                 }
             },
             mounted() {
-                // تلاش برای بارگذاری داده از localStorage
                 const savedData = loadFromStorage();
                 if (savedData) {
                     this.meals = savedData.meals;
                     this.activities = savedData.activities;
                 } else {
-                    // داده پیش‌فرض
                     const defaultData = getDefaultData();
                     this.meals = defaultData.meals;
                     this.activities = defaultData.activities;
                 }
 
-                // محاسبه کالری برای همه روزها
                 for (let d of this.days) {
                     this.$set(this.dailyCalories, d, this.calculateDayCalories(d));
                 }
-
-                // ذخیره اولیه
                 this.saveData();
             }
         });
@@ -343,11 +335,11 @@
 </script>
 
 <!-- 
-    توضیحات:
-    1. از localStorage برای ذخیره داده‌ها استفاده شده است.
-    2. به محض هر تغییر (تایپ، تغییر کالری، چک باکس آب، فعالیت) داده‌ها ذخیره می‌شوند.
-    3. با بستن و باز کردن مرورگر، همه اطلاعات باقی می‌مانند.
-    4. دکمه بازنشانی با تایید، همه چیز را پاک می‌کند.
+    تغییرات:
+    1. کالری نهایی = مجموع کالری غذاها − کالری سوزانده شده (فعالیت)
+    2. اگر نتیجه منفی شد، صفر نمایش داده می‌شود
+    3. نمایش "- X کالری" در کنار فعالیت به رنگ قرمز
+    4. عنوان "کالری نهایی" به جای "کالری روز"
 -->
 </body>
 </html>
