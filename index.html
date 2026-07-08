@@ -129,7 +129,7 @@
                         <div class="food-row">
                             <textarea class="food-input" v-model="meals[day].snack3.food" placeholder="مثال:&#10;شیر گرم&#10;خرما ۳ عدد" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
                             <span class="line-count" v-if="meals[day].snack3.food">📄 {{ meals[day].snack3.food.split('\n').filter(l => l.trim()).length }} خط</span>
-                            <input class="cal-input" type="number" v-model.number="mes[day].snack3.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <input class="cal-input" type="number" v-model.number="meals[day].snack3.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
                             <span class="cal-label">کالری این وعده</span>
                         </div>
                     </td>
@@ -335,7 +335,7 @@
 </script>
 
 <!-- 
-    تغییرات:
+    تغییرات مهم:
     1. کالری نهایی = مجموع کالری غذاها − کالری سوزانده شده (فعالیت)
     2. اگر نتیجه منفی شد، صفر نمایش داده می‌شود
     3. نمایش "- X کالری" در کنار فعالیت به رنگ قرمز
