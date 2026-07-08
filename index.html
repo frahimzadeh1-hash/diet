@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ جدول رژیم هوشمند با ذخیره خودکار</title>
+    <style>
+        /* استایل‌ها دقیقاً مانند قبل هستند، فقط برای اختصار، کمی فشرده شده‌اند */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #eef4ee; padding: 8px; display: flex; justify-content: center; }
+        .container { max-width: 1600px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 12px 35px rgba(0,0,0,0.08); padding: 18px 14px 28px; }
+        h1 { font-size: 1.9rem; color: #1a3a24; border-right: 10px solid #4f8a4f; padding-right: 18px; margin: 0 0 8px 0; }
+        .subhead { display: flex; justify-content: space-between; flex-wrap: wrap; background: #e6f0e6; padding: 10px 22px; border-radius: 50px; margin-bottom: 18px; color: #1a3a24; font-weight: 500; font-size: 0.95rem; }
+        .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #cfe0cf; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 1300px; font-size: 0.85rem; }
+        th { background: #d6e6d6; color: #0f2e1a; padding: 14px 8px; border-left: 1px solid #c0d6c0; text-align: center; font-weight: 700; font-size: 0.95rem; min-width: 100px; position: sticky; top: 0; z-index: 10; }
+        th:last-child { border-left: none; }
+        td { border: 1px solid #d0e0d0; padding: 8px 6px; vertical-align: middle; text-align: center; background: #fcfdfc; }
+        .meal-label { background: #e4f0e4; font-weight: 700; color: #0f2e1a; white-space: nowrap; padding: 0 12px; text-align: center; border-left: 2px solid #bed6be; font-size: 0.9rem; min-width: 75px; }
+        .food-group { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 3px 0; width: 100%; }
+        .food-input { width: 96%; max-width: 100%; padding: 12px 10px; border: 2px solid #b8d0b8; border-radius: 35px; font-size: 0.85rem; background: #fafffa; text-align: center; transition: 0.2s; min-height: 50px; line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; resize: vertical; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .food-input:focus { outline: 3px solid #6d9e6d; border-color: transparent; background: white; }
+        .food-input::placeholder { color: #8aaa8a; font-size: 0.75rem; }
+        .cal-input { width: 100px; padding: 10px 6px; border: 2px solid #b8d0b8; border-radius: 35px; font-size: 0.95rem; background: #fafffa; text-align: center; font-weight: 600; }
+        .cal-input:focus { outline: 3px solid #6d9e6d; border-color: transparent; }
+        .water-check { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px 8px; padding: 3px 0; }
+        .water-check label { display: flex; align-items: center; gap: 2px; font-size: 0.8rem; font-weight: 500; }
+        .water-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1f7a9e; cursor: pointer; }
+        .activity-input { width: 80px; padding: 10px 6px; border-radius: 35px; border: 2px solid #b8d0b8; text-align: center; font-weight: 600; font-size: 0.95rem; background: #fafffa; }
+        .activity-input:focus { outline: 3px solid #6d9e6d; border-color: transparent; }
+        .calorie-box { background: #d4e8d4; border-radius: 50px; padding: 10px 20px; font-weight: 800; color: #0d3a1a; display: inline-block; font-size: 1.2rem; min-width: 80px; box-shadow: inset 0 1px 4px rgba(0,0,0,0.05); }
+        .calorie-total { background: #d0e4d0; border-radius: 60px; padding: 14px 24px; font-weight: 700; color: #0d3a1a; font-size: 1.2rem; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .calorie-total button { background: #2b5e3b; border: none; color: white; padding: 10px 32px; border-radius: 60px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .calorie-total button:hover { background: #1a4028; transform: scale(0.97); }
+        .note { background: #eaf5ea; padding: 14px 20px; border-radius: 50px; margin: 16px 0 5px; font-size: 0.95rem; border-right: 8px solid #5f9a5f; color: #1a3a1a; line-height: 2; }
+        .note strong { color: #1d6b1d; }
+        .footer { font-size: 0.8rem; color: #4a6a4a; border-top: 1px dashed #c2d6c2; padding-top: 14px; margin-top: 14px; }
+        .food-row { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
+        .cal-label { font-size: 0.7rem; color: #3a6a3a; font-weight: 600; }
+        .meal-cell { min-width: 160px; max-width: 220px; }
+        .line-count { font-size: 0.65rem; color: #5a7a5a; background: #eaf5ea; padding: 1px 10px; border-radius: 30px; display: inline-block; }
+        .save-badge { background: #3b7a3b; color: white; padding: 2px 14px; border-radius: 40px; font-size: 0.7rem; display: inline-block; margin-right: 8px; }
+        @media (max-width: 860px) { .container { padding: 8px; } h1 { font-size: 1.3rem; } table { font-size: 0.7rem; min-width: 900px; } .food-input { font-size: 0.7rem; min-height: 40px; padding: 8px 6px; } .cal-input { width: 75px; font-size: 0.8rem; padding: 6px 4px; } th { font-size: 0.8rem; padding: 10px 4px; } }
+        @media (max-width: 500px) { .food-input { font-size: 0.65rem; min-height: 35px; } .cal-input { width: 65px; font-size: 0.7rem; } }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+
+    <h1>📝 جدول رژیم · با ذخیره خودکار</h1>
+    <div class="subhead">
+        <span>🗓️ چهارشنبه ۱۶ تیر ۱۴۰۵ تا سه‌شنبه</span>
+        <span>⚡ <span style="background:#3b7a3b;color:white;padding:4px 18px;border-radius:40px;">💾 همه چیز ذخیره می‌شود</span></span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="min-width:80px;position:sticky;top:0;z-index:10;">وعده</th>
+                    <th v-for="day in days" :key="day" :class="{ today: day === todayName }" style="font-size:0.95rem;position:sticky;top:0;z-index:10;">{{ day }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- صبحانه -->
+                <tr>
+                    <td class="meal-label">🍳 صبحانه</td>
+                    <td v-for="day in days" :key="'b'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].breakfast.food" placeholder="مثال:&#10;نان سنگک سه کف دست&#10;پنیر سی گرم&#10;خرما یک عدد" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].breakfast.food">📄 {{ meals[day].breakfast.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].breakfast.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- میان‌وعده 1 -->
+                <tr>
+                    <td class="meal-label">🍏 میان‌وعده</td>
+                    <td v-for="day in days" :key="'s1'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].snack1.food" placeholder="مثال:&#10;سیب متوسط&#10;گردو ۲ عدد" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].snack1.food">📄 {{ meals[day].snack1.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].snack1.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- ناهار -->
+                <tr>
+                    <td class="meal-label">🍲 ناهار</td>
+                    <td v-for="day in days" :key="'l'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].lunch.food" placeholder="مثال:&#10;سینه مرغ ۱۵۰ گرم&#10;برنج ۲۰۰ گرم&#10;سالاد کاهو" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].lunch.food">📄 {{ meals[day].lunch.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].lunch.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- میان‌وعده 2 -->
+                <tr>
+                    <td class="meal-label">🍇 میان‌وعده</td>
+                    <td v-for="day in days" :key="'s2'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].snack2.food" placeholder="مثال:&#10;ماست کم چرب&#10;عسل ۱ قاشق" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].snack2.food">📄 {{ meals[day].snack2.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].snack2.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- شام -->
+                <tr>
+                    <td class="meal-label">🥗 شام</td>
+                    <td v-for="day in days" :key="'d'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].dinner.food" placeholder="مثال:&#10;ماهی سالمون ۱۵۰ گرم&#10;سالاد سبز&#10;کدو تنور" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].dinner.food">📄 {{ meals[day].dinner.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].dinner.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- میان‌وعده 3 -->
+                <tr>
+                    <td class="meal-label">🌙 میان‌وعده</td>
+                    <td v-for="day in days" :key="'s3'+day" class="meal-cell">
+                        <div class="food-row">
+                            <textarea class="food-input" v-model="meals[day].snack3.food" placeholder="مثال:&#10;شیر گرم&#10;خرما ۳ عدد" @input="saveData(); updateCalorie(day)" rows="3" style="resize:vertical;min-height:60px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"></textarea>
+                            <span class="line-count" v-if="meals[day].snack3.food">📄 {{ meals[day].snack3.food.split('\n').filter(l => l.trim()).length }} خط</span>
+                            <input class="cal-input" type="number" v-model.number="meals[day].snack3.cal" placeholder="کالری" min="0" @input="saveData(); updateCalorie(day)">
+                            <span class="cal-label">کالری این وعده</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- آب ۸ لیوان -->
+                <tr>
+                    <td class="meal-label">💧 آب (۸ لیوان)</td>
+                    <td v-for="day in days" :key="'w'+day">
+                        <div class="water-check">
+                            <label v-for="i in 8" :key="i">
+                                <input type="checkbox" v-model="meals[day].water[i-1]" @change="saveData()"> {{ i }}
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <!-- فعالیت -->
+                <tr>
+                    <td class="meal-label">🏃 فعالیت (دقیقه)</td>
+                    <td v-for="day in days" :key="'a'+day">
+                        <input class="activity-input" type="number" v-model.number="activities[day]" min="0" step="5" placeholder="۰" @input="saveData(); updateCalorie(day)">
+                        <span style="font-size:0.7rem;display:block;color:#3a6a3a;font-weight:600;">= {{ (activities[day] || 0) * 2 }} کالری</span>
+                    </td>
+                </tr>
+                <!-- کالری روزانه -->
+                <tr>
+                    <td class="meal-label" style="background:#d4e8d4; font-weight:800; font-size:1rem;">🔥 کالری روز</td>
+                    <td v-for="day in days" :key="'c'+day" style="background:#f2faf2;">
+                        <span class="calorie-box">{{ dailyCalories[day] ?? 0 }}</span>
+                        <span style="font-size:0.65rem;display:block;color:#2d5a2d;font-weight:600;">کالری</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- جمع کل و دکمه reset -->
+    <div class="calorie-total">
+        <span>🧮 مجموع کالری هفته: <strong style="font-size:1.4rem;">{{ weekTotal }}</strong> کیلوکالری</span>
+        <div>
+            <button @click="resetAll">🔄 بازنشانی همه</button>
+            <span style="font-size:0.7rem;color:#3a6a3a;margin-right:8px;">💾 همه چیز خودکار ذخیره می‌شود</span>
+        </div>
+    </div>
+
+    <div class="note">
+        ✏️ <strong>نحوه استفاده:</strong> 
+        در هر باکس می‌توانید با <strong>Shift + Enter</strong> خط جدید ایجاد کنید و تمام غذاهای آن وعده را لیست کنید.
+        <span style="background:#3b7a3b;color:white;padding:2px 16px;border-radius:40px;font-weight:700;margin-right:8px;">💾 همه چیز ذخیره می‌شود</span>
+    </div>
+    <div class="footer">
+        📌 کالری کل = مجموع کالری غذاها (وارد شده توسط شما) + (دقیقه فعالیت × ۲) · شما کالری هر وعده را وارد می‌کنید، من جمع می‌زنم.
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script>
+    (function() {
+        const daysOfWeek = ['چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه'];
+        const todayName = 'چهارشنبه';
+        const STORAGE_KEY = 'diet_table_data_v2'; // کلید ذخیره‌سازی
+
+        function createMealObject() {
+            return {
+                breakfast: { food: '', cal: 0 },
+                snack1: { food: '', cal: 0 },
+                lunch: { food: '', cal: 0 },
+                snack2: { food: '', cal: 0 },
+                dinner: { food: '', cal: 0 },
+                snack3: { food: '', cal: 0 },
+                water: [false, false, false, false, false, false, false, false]
+            };
+        }
+
+        function getDefaultData() {
+            const meals = {};
+            for (let d of daysOfWeek) {
+                meals[d] = createMealObject();
+            }
+            const activities = {};
+            for (let d of daysOfWeek) {
+                activities[d] = 0;
+            }
+            return { meals, activities };
+        }
+
+        // بارگذاری داده از localStorage
+        function loadFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    // بررسی می‌کنیم که ساختار داده درست است
+                    if (parsed.meals && parsed.activities) {
+                        // اطمینان از اینکه همه روزها وجود دارند
+                        let valid = true;
+                        for (let d of daysOfWeek) {
+                            if (!parsed.meals[d]) valid = false;
+                            if (parsed.activities[d] === undefined) valid = false;
+                        }
+                        if (valid) {
+                            return parsed;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('خطا در بارگذاری داده:', e);
+            }
+            return null;
+        }
+
+        new Vue({
+            el: '#app',
+            data: {
+                days: daysOfWeek,
+                todayName: todayName,
+                meals: {},
+                activities: {},
+                dailyCalories: {},
+                activityCalPerMin: 2,
+                isSaving: false,
+            },
+            computed: {
+                weekTotal() {
+                    let total = 0;
+                    for (let d of this.days) {
+                        total += (this.dailyCalories[d] || 0);
+                    }
+                    return total;
+                }
+            },
+            methods: {
+                calculateDayCalories(day) {
+                    const m = this.meals[day];
+                    if (!m) return 0;
+
+                    let foodCal = 0;
+                    foodCal += (m.breakfast?.cal || 0);
+                    foodCal += (m.snack1?.cal || 0);
+                    foodCal += (m.lunch?.cal || 0);
+                    foodCal += (m.snack2?.cal || 0);
+                    foodCal += (m.dinner?.cal || 0);
+                    foodCal += (m.snack3?.cal || 0);
+
+                    const activityMin = this.activities[day] || 0;
+                    const activityCal = activityMin * this.activityCalPerMin;
+
+                    return Math.round(foodCal + activityCal);
+                },
+                updateCalorie(day) {
+                    this.$set(this.dailyCalories, day, this.calculateDayCalories(day));
+                },
+                saveData() {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+                    try {
+                        const data = {
+                            meals: this.meals,
+                            activities: this.activities
+                        };
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    } catch (e) {
+                        console.warn('خطا در ذخیره‌سازی:', e);
+                    }
+                    this.isSaving = false;
+                },
+                initDay(day) {
+                    if (!this.meals[day]) {
+                        this.$set(this.meals, day, createMealObject());
+                    }
+                    if (this.activities[day] === undefined) {
+                        this.$set(this.activities, day, 0);
+                    }
+                    this.$set(this.dailyCalories, day, this.calculateDayCalories(day));
+                },
+                resetAll() {
+                    if (confirm('آیا مطمئن هستید که می‌خواهید همه داده‌ها را بازنشانی کنید؟')) {
+                        const defaultData = getDefaultData();
+                        this.meals = defaultData.meals;
+                        this.activities = defaultData.activities;
+                        for (let d of this.days) {
+                            this.$set(this.dailyCalories, d, this.calculateDayCalories(d));
+                        }
+                        this.saveData();
+                    }
+                }
+            },
+            mounted() {
+                // تلاش برای بارگذاری داده از localStorage
+                const savedData = loadFromStorage();
+                if (savedData) {
+                    this.meals = savedData.meals;
+                    this.activities = savedData.activities;
+                } else {
+                    // داده پیش‌فرض
+                    const defaultData = getDefaultData();
+                    this.meals = defaultData.meals;
+                    this.activities = defaultData.activities;
+                }
+
+                // محاسبه کالری برای همه روزها
+                for (let d of this.days) {
+                    this.$set(this.dailyCalories, d, this.calculateDayCalories(d));
+                }
+
+                // ذخیره اولیه
+                this.saveData();
+            }
+        });
+    })();
+</script>
+
+<!-- 
+    توضیحات:
+    1. از localStorage برای ذخیره داده‌ها استفاده شده است.
+    2. به محض هر تغییر (تایپ، تغییر کالری، چک باکس آب، فعالیت) داده‌ها ذخیره می‌شوند.
+    3. با بستن و باز کردن مرورگر، همه اطلاعات باقی می‌مانند.
+    4. دکمه بازنشانی با تایید، همه چیز را پاک می‌کند.
+-->
+</body>
+</html>
